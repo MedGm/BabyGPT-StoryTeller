@@ -35,16 +35,41 @@ BabyGPT is a compact and creative text generation model based on GPT-2, fine-tun
 ## 🚀 Quick Start
 
 ```python
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
+from huggingface_hub import login
+
+# Auth for private repo (optional if public)
+login("your-huggingface-token")
+
+# Load model + tokenizer
+model_id = "MedGm/babygpt-storyteller"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(model_id)
 
 storyteller = pipeline("text-generation", 
-                       model="MedGm/babygpt-storyteller")
+                       model=model, 
+                       tokenizer=tokenizer,
+                       device=-1)  # Force CPU
 
-prompt = "The little fox found a glowing"
-story = storyteller(prompt, max_length=100, 
-                    temperature=0.7, top_k=50, repetition_penalty=1.2)[0]["generated_text"]
+# Prompt format
+prompt = "Title: The Dancing Robot\nStory:\nOnce upon a time, there was a robot who"
 
+# Generate story
+outputs = storyteller(
+    prompt,
+    max_new_tokens=200,
+    temperature=0.8,
+    top_k=50,
+    repetition_penalty=1.2,
+    do_sample=True,
+    truncation=True,
+    eos_token_id=tokenizer.eos_token_id  # Add if your tokenizer supports it
+)
+
+story = outputs[0]["generated_text"]
+print("\n Story Generated:\n")
 print(story)
+
 ```
 
 | Metric            | Value                                  |
